@@ -14,7 +14,7 @@ namespace Exchange.Controllers
         private readonly IRequest _request;
         public BaseController(IRequest request)
         {
-            this._request = request;
+            _request = request;
         }
 
         [HttpGet]
@@ -23,19 +23,18 @@ namespace Exchange.Controllers
 
             GetInfoFromApi rates = new GetInfoFromApi();
             List<decimal> allRates = new List<decimal>();
-            object rate = string.Empty;
 
             foreach (var date in dates)
             {
-                rate = rates.GetExchangeRate(_request.CreateRequest(uri, date, currencyFrom, currencyTo));
+                var rate = rates.GetExchangeRate(_request.CreateRequest(uri, date, currencyFrom, currencyTo));
                 if (rate != null)
                     allRates.Add(decimal.Parse(rate.ToString()));
             }
 
-            Result result = new Result();
-            result.MinimumRate = allRates.Min();
-            result.MaximumRate = allRates.Max();
-            result.AverageRate = allRates.Average();
+            var result = new Result
+            {
+                MinimumRate = allRates.Min(), MaximumRate = allRates.Max(), AverageRate = allRates.Average()
+            };
 
             return result;
         }
