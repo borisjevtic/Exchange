@@ -12,12 +12,12 @@ namespace Exchange.Test.Tests
         public void CallExternApiForOneDate()
         {
             const string request = "https://api.exchangeratesapi.io/history?start_at=2018-02-01&end_at=2018-02-01&symbols=&base=SEK";
-            const string result = "0,156564317";
+            const decimal result = (decimal) 0.156564317;
 
             var rates = new GetInfoFromApi();
             var rate = rates.GetExchangeRate(request);
 
-            Assert.AreEqual(rate.ToString(), result);
+            Assert.AreEqual(rate.Item2, result);
         }
 
         [Test]
@@ -29,12 +29,12 @@ namespace Exchange.Test.Tests
             const string requestPart2 = "&end_at=2018-02-";
             const string requestPart3 = "&symbols=&base=SEK";
 
-            const string max = "0,1573301069";
-            const string min = "0,1555219517";
-            const string average = "0,1565726749";
+            const decimal max = (decimal) 0.1573301069;
+            const decimal min = (decimal) 0.1555219517;
+            const decimal average = (decimal) 0.1565726749;
 
             var rates = new GetInfoFromApi();
-            var allRates = new List<decimal>();
+            Dictionary<string, decimal> allRates = new Dictionary<string, decimal>();
 
             for (var i = 0; i < 20; i++)
             {
@@ -45,12 +45,51 @@ namespace Exchange.Test.Tests
                                                     requestPart3);
 
                 if (rate != null)
-                    allRates.Add(decimal.Parse(rate.ToString()));
+                    allRates.Add(rate.Item1, rate.Item2);
+            }
+
+            var minimumValue = allRates.Min(x => x.Value);
+            var maximumValue = allRates.Max(x => x.Value);
+            var averageValue = allRates.Average(x => x.Value);
+
+            Assert.AreEqual(minimumValue, min);
+            Assert.AreEqual(maximumValue, max);
+            Assert.AreEqual(Math.Round(averageValue, 10), average);
+        }
+
+        [Test]
+        public void CallExternApiFor3Dates()
+        {
+        
+        //"https://api.exchangeratesapi.io/history?start_at=2018-02-01&end_at=2018-02-01&symbols=&base=SEK";
+
+            const string uri = "https://api.exchangeratesapi.io";
+
+            string[] dates = {"2018-02-01", "2018-02-15", "2018-03-01"};
+            var currencyFrom = "SEK";
+            var currencyTo = "NOK";
+            const decimal min = (decimal) 0.9546869595;
+            const decimal max = (decimal) 0.9815486993;
+            const decimal average = (decimal) 0.970839476467;
+
+            Request request = new Request();
+            GetInfoFromApi rates = new GetInfoFromApi();
+            Dictionary<string, decimal> allRates = new Dictionary<string, decimal>();
+
+            foreach (var date in dates)
+            {
+                var rate = rates.GetExchangeRate(request.CreateRequest(uri, date, currencyFrom, currencyTo));
+                if (rate != null)
+                    allRates.Add(rate.Item1, rate.Item2);
             }
             
-            Assert.AreEqual(allRates.Max().ToString(), max);
-            Assert.AreEqual(allRates.Min().ToString(), min);
-            Assert.AreEqual(Math.Round(allRates.Average(),10).ToString(), average);
+            var minimumValue = allRates.Min(x => x.Value);
+            var maximumValue = allRates.Max(x => x.Value);
+            var averageValue = allRates.Average(x => x.Value);
+            
+            Assert.AreEqual(minimumValue, min);
+            Assert.AreEqual(maximumValue, max);
+            Assert.AreEqual(Math.Round(averageValue,12), average);
         }
     }
 }

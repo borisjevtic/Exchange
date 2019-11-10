@@ -1,4 +1,6 @@
-﻿namespace Exchange.Models
+﻿using System.Collections.Generic;
+
+namespace Exchange.Models
 {
     public class Result
     {

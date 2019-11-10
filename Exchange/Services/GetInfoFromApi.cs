@@ -10,7 +10,7 @@ namespace Exchange.Services
 {
     public class GetInfoFromApi
     {
-        public object GetExchangeRate(string request)
+        public Tuple<string, decimal> GetExchangeRate(string request)
         {
             try
             {
@@ -25,7 +25,14 @@ namespace Exchange.Services
                         var jsonString = response.Content.ReadAsStringAsync().Result;
                         ExpandoObject expandedJson = JsonConvert.DeserializeObject<ExpandoObject>(jsonString);
                         var rates = (IDictionary<string, object>)expandedJson.FirstOrDefault(x => x.Key == "rates").Value;
-                        return ((IDictionary<string, object>)rates.FirstOrDefault().Value)?.FirstOrDefault().Value;
+                        foreach (var rate in rates)
+                        {
+                            foreach (var exchangeDate in (IDictionary<string, object>)rate.Value)
+                            {
+                                var result = Tuple.Create(rate.Key, decimal.Parse(exchangeDate.Value.ToString()));
+                                return result;
+                            }
+                        }
                     }
 
                     return null;
